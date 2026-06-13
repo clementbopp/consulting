@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Back-Office · CB Consulting</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#1A1A18;--cream:#FAFAF7;--gold:#C8A96E;--warm:#F0EDE5;--muted:#7A7972;--bdr:rgba(26,26,24,0.09);--bdrg:rgba(200,169,110,0.26);--red:#C8625A;--green:#6A9E72}
+html{font-size:14px}
+body{font-family:'Jost',sans-serif;font-weight:300;background:#0F0F0E;color:#E8E5DF;min-height:100vh}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--gold)}
+
+/* LOGIN */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0F0F0E}
+.login-box{background:rgba(250,250,247,0.04);border:1px solid rgba(200,169,110,0.2);padding:52px 48px;text-align:center;max-width:360px;width:100%}
+.login-logo{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:#FAFAF7;margin-bottom:6px}
+.login-logo em{color:var(--gold);font-style:normal}
+.login-sub{font-size:9px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:rgba(250,250,247,0.25);margin-bottom:40px}
+.login-input{width:100%;background:rgba(250,250,247,0.05);border:1px solid rgba(200,169,110,0.2);color:#E8E5DF;font-family:'Jost',sans-serif;font-size:13px;padding:13px 16px;margin-bottom:10px;outline:none;letter-spacing:4px;text-align:center}
+.login-input:focus{border-color:var(--gold)}
+.login-btn{width:100%;background:var(--gold);color:var(--ink);border:none;font-family:'Jost',sans-serif;font-size:8.5px;font-weight:500;letter-spacing:3px;text-transform:uppercase;padding:13px;cursor:pointer;margin-top:6px;transition:opacity .2s}
+.login-btn:hover{opacity:.85}
+.login-err{font-size:10px;color:var(--red);margin-top:8px;display:none}
+
+/* APP */
+#app{display:none}
+
+/* TOP BAR */
+.topbar{background:#141413;border-bottom:1px solid rgba(200,169,110,0.12);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.tb-logo{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:300;color:#FAFAF7}
+.tb-logo em{color:var(--gold);font-style:normal}
+.tb-logo span{font-size:8px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:rgba(250,250,247,0.25);margin-left:12px}
+.tb-right{display:flex;gap:16px;align-items:center}
+.tb-btn{font-size:8.5px;font-weight:500;letter-spacing:2px;text-transform:uppercase;background:transparent;border:1px solid rgba(200,169,110,0.25);color:rgba(250,250,247,0.40);padding:7px 16px;cursor:pointer;font-family:'Jost',sans-serif;transition:all .2s}
+.tb-btn:hover{border-color:var(--gold);color:rgba(250,250,247,0.7)}
+.tb-btn.primary{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.tb-btn.primary:hover{opacity:.85}
+
+/* LAYOUT */
+.bo-layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 56px)}
+.sidebar{background:#111110;border-right:1px solid rgba(200,169,110,0.10);padding:28px 0}
+.sb-section{padding:0 20px;margin-bottom:28px}
+.sb-title{font-size:7.5px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:rgba(250,250,247,0.20);margin-bottom:14px;padding:0 4px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:2px;cursor:pointer;color:rgba(250,250,247,0.40);font-size:11.5px;transition:all .2s;margin-bottom:2px}
+.sb-item:hover{background:rgba(200,169,110,0.06);color:rgba(250,250,247,0.70)}
+.sb-item.active{background:rgba(200,169,110,0.10);color:var(--gold)}
+.sb-item-icon{font-size:14px;width:18px;text-align:center}
+
+.main-content{padding:28px 32px;overflow-y:auto}
+
+/* PERIOD FILTER */
+.period-bar{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;align-items:center}
+.period-btn{font-size:9px;font-weight:500;letter-spacing:2px;text-transform:uppercase;background:transparent;border:1px solid rgba(200,169,110,0.18);color:rgba(250,250,247,0.35);padding:8px 16px;cursor:pointer;font-family:'Jost',sans-serif;transition:all .2s}
+.period-btn:hover{border-color:var(--gold);color:rgba(250,250,247,0.65)}
+.period-btn.active{background:rgba(200,169,110,0.12);border-color:var(--gold);color:var(--gold)}
+.period-sep{color:rgba(250,250,247,0.15);margin:0 4px}
+.period-custom{display:flex;gap:8px;align-items:center}
+.period-input{background:rgba(250,250,247,0.05);border:1px solid rgba(200,169,110,0.18);color:#E8E5DF;font-family:'Jost',sans-serif;font-size:11px;padding:7px 12px;outline:none;width:130px}
+.period-input:focus{border-color:var(--gold)}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.kpi-card{background:#1A1A18;border:1px solid rgba(200,169,110,0.12);padding:22px 20px}
+.kpi-label{font-size:7.5px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:rgba(250,250,247,0.28);margin-bottom:10px}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:var(--gold);line-height:1;margin-bottom:6px}
+.kpi-sub{font-size:10px;color:rgba(250,250,247,0.30)}
+.kpi-trend{font-size:10px;display:flex;align-items:center;gap:4px;margin-top:4px}
+.trend-up{color:#6A9E72}
+.trend-down{color:#C8625A}
+
+/* CHARTS GRID */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+.chart-card{background:#1A1A18;border:1px solid rgba(200,169,110,0.12);padding:24px}
+.chart-title{font-size:9px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:rgba(250,250,247,0.35);margin-bottom:4px}
+.chart-subtitle{font-size:10px;color:rgba(250,250,247,0.20);margin-bottom:20px}
+.chart-wrap{position:relative;height:220px}
+
+.chart-card.full{grid-column:span 2}
+.chart-card.full .chart-wrap{height:200px}
+
+/* PRIORITY HEATMAP */
+.priority-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.priority-cell{padding:10px 6px;text-align:center;border:1px solid rgba(200,169,110,0.08)}
+.priority-name{font-size:7px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:rgba(250,250,247,0.30);margin-bottom:4px}
+.priority-avg{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;line-height:1}
+.priority-bar{height:3px;background:rgba(200,169,110,0.15);margin-top:6px;border-radius:2px}
+.priority-fill{height:100%;border-radius:2px;background:var(--gold);transition:width .5s}
+
+/* PROSPECTS TABLE */
+.table-card{background:#1A1A18;border:1px solid rgba(200,169,110,0.12);padding:24px;margin-bottom:28px}
+.table-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.table-search{background:rgba(250,250,247,0.04);border:1px solid rgba(200,169,110,0.18);color:#E8E5DF;font-family:'Jost',sans-serif;font-size:12px;padding:8px 14px;outline:none;width:240px}
+.table-search:focus{border-color:var(--gold)}
+
+table{width:100%;border-collapse:collapse}
+th{font-size:7.5px;font-weight:500;letter-spacing:2.5px;text-transform:uppercase;color:rgba(250,250,247,0.25);padding:8px 10px;text-align:left;border-bottom:1px solid rgba(200,169,110,0.10)}
+td{font-size:11px;padding:10px;border-bottom:1px solid rgba(250,250,247,0.04);color:rgba(250,250,247,0.60);vertical-align:middle}
+tr:hover td{background:rgba(200,169,110,0.03)}
+.badge{display:inline-block;font-size:8px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:1px}
+.badge-urgentiste{background:rgba(200,169,110,0.15);color:var(--gold)}
+.badge-batisseur{background:rgba(106,158,114,0.15);color:#6A9E72}
+.badge-creatif{background:rgba(130,100,180,0.15);color:#9A78D8}
+.badge-formateur{background:rgba(100,150,200,0.15);color:#6496C8}
+.badge-exportateur{background:rgba(200,130,80,0.15);color:#C88250}
+.badge-stratege{background:rgba(200,80,90,0.15);color:#C8505A}
+.badge-converted{background:rgba(106,158,114,0.18);color:#6A9E72}
+.badge-pending{background:rgba(200,169,110,0.12);color:rgba(200,169,110,0.6)}
+.convert-btn{background:transparent;border:1px solid rgba(106,158,114,0.30);color:rgba(106,158,114,0.50);font-size:8px;font-weight:500;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;cursor:pointer;font-family:'Jost',sans-serif;transition:all .2s}
+.convert-btn:hover{background:rgba(106,158,114,0.12);border-color:#6A9E72;color:#6A9E72}
+.empty-state{text-align:center;padding:48px;color:rgba(250,250,247,0.20);font-size:13px}
+.empty-icon{font-family:'Cormorant Garamond',serif;font-size:36px;color:rgba(200,169,110,0.2);margin-bottom:12px}
+
+/* NO DATA */
+.no-data{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:200px;gap:12px}
+.no-data-icon{font-family:'Cormorant Garamond',serif;font-size:32px;color:rgba(200,169,110,0.2)}
+.no-data-text{font-size:11px;color:rgba(250,250,247,0.20);text-align:center;line-height:1.7}
+
+/* PAGES */
+.bo-page{display:none}
+.bo-page.active{display:block}
+
+/* Responsive */
+@media(max-width:900px){
+  .bo-layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .charts-grid{grid-template-columns:1fr}
+  .chart-card.full{grid-column:span 1}
+  .priority-grid{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-box">
+    <div class="login-logo">CB <em>Consulting</em></div>
+    <div class="login-sub">Back-Office · Accès privé</div>
+    <input type="password" class="login-input" id="loginPwd" placeholder="• • • • • •" onkeydown="if(event.key==='Enter')checkLogin()">
+    <button class="login-btn" onclick="checkLogin()">Accéder au tableau de bord</button>
+    <div class="login-err" id="loginErr">Code incorrect</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="tb-logo">CB <em>Consulting</em> <span>Back-Office</span></div>
+    <div class="tb-right">
+      <button class="tb-btn" onclick="exportCSV()">↓ Exporter CSV</button>
+      <button class="tb-btn primary" onclick="logout()">Déconnexion</button>
+    </div>
+  </div>
+  <div class="bo-layout">
+    <div class="sidebar">
+      <div class="sb-section">
+        <div class="sb-title">Navigation</div>
+        <div class="sb-item active" onclick="showPage('dashboard',this)"><span class="sb-item-icon">◈</span>Dashboard</div>
+        <div class="sb-item" onclick="showPage('prospects',this)"><span class="sb-item-icon">⊕</span>Prospects</div>
+        <div class="sb-item" onclick="showPage('profiles',this)"><span class="sb-item-icon">▲</span>Typologies</div>
+        <div class="sb-item" onclick="showPage('priorities',this)"><span class="sb-item-icon">✦</span>Priorités clients</div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-title">Actions</div>
+        <div class="sb-item" onclick="exportCSV()"><span class="sb-item-icon">↓</span>Export CSV</div>
+        <div class="sb-item" onclick="clearData()"><span class="sb-item-icon">×</span>Effacer données</div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <!-- PERIOD FILTER -->
+      <div class="period-bar">
+        <button class="period-btn active" onclick="setPeriod('all',this)">Tout</button>
+        <button class="period-btn" onclick="setPeriod('7d',this)">7 jours</button>
+        <button class="period-btn" onclick="setPeriod('30d',this)">30 jours</button>
+        <button class="period-btn" onclick="setPeriod('90d',this)">3 mois</button>
+        <span class="period-sep">|</span>
+        <div class="period-custom">
+          <input type="date" class="period-input" id="dateFrom">
+          <span style="color:rgba(250,250,247,0.25);font-size:11px">→</span>
+          <input type="date" class="period-input" id="dateTo">
+          <button class="period-btn" onclick="setPeriodCustom()">Appliquer</button>
+        </div>
+      </div>
+
+      <!-- DASHBOARD PAGE -->
+      <div class="bo-page active" id="pageDashboard">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Total prospects</div>
+            <div class="kpi-val" id="kpiTotal">0</div>
+            <div class="kpi-sub">via questionnaire & formulaire</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Taux de conversion</div>
+            <div class="kpi-val" id="kpiConversion">0%</div>
+            <div class="kpi-sub" id="kpiConvSub">0 convertis</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Profil dominant</div>
+            <div class="kpi-val" id="kpiTopProfile" style="font-size:20px;padding-top:6px">—</div>
+            <div class="kpi-sub" id="kpiTopProfileSub"></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Formule dominante</div>
+            <div class="kpi-val" id="kpiTopMission" style="font-size:20px;padding-top:6px">—</div>
+            <div class="kpi-sub" id="kpiTopMissionSub"></div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-title">Typologies clients</div>
+            <div class="chart-subtitle">Distribution des profils identifiés</div>
+            <div class="chart-wrap"><canvas id="chartProfiles"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Formules demandées</div>
+            <div class="chart-subtitle">Type de mission envisagé</div>
+            <div class="chart-wrap"><canvas id="chartMissions"></canvas></div>
+          </div>
+          <div class="chart-card full">
+            <div class="chart-title">Évolution temporelle</div>
+            <div class="chart-subtitle">Prospects par semaine</div>
+            <div class="chart-wrap"><canvas id="chartTimeline"></canvas></div>
+          </div>
+        </div>
+
+        <!-- PRIORITY HEATMAP -->
+        <div class="chart-card" style="margin-bottom:16px">
+          <div class="chart-title">Priorités moyennes clients</div>
+          <div class="chart-subtitle">Score moyen sur 5 pour chaque dimension</div>
+          <div class="priority-grid" id="priorityHeatmap"></div>
+        </div>
+      </div>
+
+      <!-- PROSPECTS PAGE -->
+      <div class="bo-page" id="pageProspects">
+        <div class="table-card">
+          <div class="table-header">
+            <div>
+              <div class="chart-title">Liste des prospects</div>
+              <div class="chart-subtitle" id="prospectsCount">0 entrées</div>
+            </div>
+            <input type="text" class="table-search" placeholder="Rechercher…" oninput="filterTable(this.value)">
+          </div>
+          <div id="prospectsTableWrap">
+            <div class="empty-state"><div class="empty-icon">◈</div>Aucun prospect enregistré pour l'instant.<br>Les données arrivent automatiquement via le questionnaire et le formulaire de contact.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILES PAGE -->
+      <div class="bo-page" id="pageProfiles">
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-title">Distribution des profils</div>
+            <div class="chart-subtitle">Répartition des typologies</div>
+            <div class="chart-wrap"><canvas id="chartProfiles2"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Taux de conversion par profil</div>
+            <div class="chart-subtitle">% convertis par typologie</div>
+            <div class="chart-wrap"><canvas id="chartConversion"></canvas></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Profils détaillés</div>
+          <div class="chart-subtitle">Description et recommandations par profil</div>
+          <div id="profilesDetail"></div>
+        </div>
+      </div>
+
+      <!-- PRIORITIES PAGE -->
+      <div class="bo-page" id="pagePriorities">
+        <div class="chart-card" style="margin-bottom:16px">
+          <div class="chart-title">Analyse des priorités clients</div>
+          <div class="chart-subtitle">Moyenne et distribution des scores (1–5) par dimension</div>
+          <div class="chart-wrap" style="height:300px"><canvas id="chartPrioritiesRadar"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Scores détaillés par dimension</div>
+          <div class="chart-subtitle">Distribution complète des réponses</div>
+          <div class="priority-grid" id="priorityDetail"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   AUTH
+══════════════════════════════════════════════ */
+// Password: CB2025 (à changer dans un vrai déploiement)
+const PWD = 'Bopp2025!';
+let charts = {};
+let currentPeriod = 'all';
+let periodFrom = null, periodTo = null;
+
+function checkLogin() {
+  if (document.getElementById('loginPwd').value === PWD) {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    refreshAll();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+    setTimeout(() => document.getElementById('loginErr').style.display = 'none', 2000);
+  }
+}
+
+function logout() {
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginPwd').value = '';
+}
+
+/* ══════════════════════════════════════════════
+   PAGES
+══════════════════════════════════════════════ */
+function showPage(page, item) {
+  document.querySelectorAll('.bo-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('page'+page.charAt(0).toUpperCase()+page.slice(1)).classList.add('active');
+  if(item) item.classList.add('active');
+  refreshAll();
+}
+
+/* ══════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════ */
+function getData() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('cb_prospects') || '[]');
+    if (currentPeriod === 'all') return raw;
+    const now = new Date();
+    let from;
+    if (currentPeriod === '7d') from = new Date(now - 7*86400000);
+    else if (currentPeriod === '30d') from = new Date(now - 30*86400000);
+    else if (currentPeriod === '90d') from = new Date(now - 90*86400000);
+    else if (currentPeriod === 'custom' && periodFrom) {
+      from = new Date(periodFrom);
+      const to = periodTo ? new Date(periodTo) : now;
+      return raw.filter(p => { const d = new Date(p.timestamp); return d >= from && d <= to; });
+    }
+    return raw.filter(p => new Date(p.timestamp) >= from);
+  } catch { return []; }
+}
+
+function setPeriod(p, btn) {
+  currentPeriod = p;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  refreshAll();
+}
+
+function setPeriodCustom() {
+  periodFrom = document.getElementById('dateFrom').value;
+  periodTo = document.getElementById('dateTo').value;
+  currentPeriod = 'custom';
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  refreshAll();
+}
+
+/* ══════════════════════════════════════════════
+   CHART HELPERS
+══════════════════════════════════════════════ */
+const COLORS = {
+  urgentiste: 'rgba(200,169,110,0.8)',
+  batisseur: 'rgba(106,158,114,0.8)',
+  creatif: 'rgba(154,120,216,0.8)',
+  formateur: 'rgba(100,150,200,0.8)',
+  exportateur: 'rgba(200,130,80,0.8)',
+  stratege: 'rgba(200,80,90,0.8)',
+  null: 'rgba(200,200,200,0.4)'
+};
+
+const PROFILE_LABELS = {
+  urgentiste: "L'Urgentiste",
+  batisseur: "Le Bâtisseur",
+  creatif: "Le Créatif",
+  formateur: "Le Formateur",
+  exportateur: "L'Exportateur",
+  stratege: "Le Stratège"
+};
+
+const MISSION_LABELS = {
+  expertise: '01 · Journée', analyse: '02 · Analyse',
+  trimestriel: '03 · Trimestriel', semestriel: '04 · Semestriel',
+  sourcing: 'Sourcing', indecis: 'À définir'
+};
+
+const CHART_DEFAULTS = {
+  plugins: { legend: { labels: { color: 'rgba(250,250,247,0.45)', font: { family:"'Jost',sans-serif", size:10 } } } }
+};
+
+function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function makeChart(id, type, labels, data, colors, opts={}) {
+  destroyChart(id);
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type, data: { labels, datasets:[{ data, backgroundColor:colors, borderColor:colors.map(c=>c.replace('0.8','1')), borderWidth:1, ...opts.dataset }] },
+    options: { responsive:true, maintainAspectRatio:false, ...CHART_DEFAULTS, ...opts.options }
+  });
+}
+
+/* ══════════════════════════════════════════════
+   REFRESH ALL
+══════════════════════════════════════════════ */
+function refreshAll() {
+  const data = getData();
+  updateKPIs(data);
+  updateChartProfiles(data);
+  updateChartMissions(data);
+  updateChartTimeline(data);
+  updatePriorityHeatmap(data);
+  updateProspectsTable(data);
+  updateProfilesPage(data);
+  updatePrioritiesPage(data);
+}
+
+/* KPIs */
+function updateKPIs(data) {
+  const total = data.length;
+  const converted = data.filter(p => p.converted).length;
+  const rate = total > 0 ? Math.round(converted/total*100) : 0;
+
+  document.getElementById('kpiTotal').textContent = total;
+  document.getElementById('kpiConversion').textContent = rate+'%';
+  document.getElementById('kpiConvSub').textContent = converted+' convertis sur '+total;
+
+  // Top profile
+  const profileCounts = {};
+  data.forEach(p => { const k = p.profile||'null'; profileCounts[k] = (profileCounts[k]||0)+1; });
+  const topProfile = Object.entries(profileCounts).sort((a,b)=>b[1]-a[1])[0];
+  if (topProfile) {
+    document.getElementById('kpiTopProfile').textContent = (PROFILE_LABELS[topProfile[0]] || topProfile[0]).replace("L'","").replace("Le ","").replace("La ","");
+    document.getElementById('kpiTopProfileSub').textContent = topProfile[1]+' prospects ('+Math.round(topProfile[1]/total*100)+'%)';
+  } else {
+    document.getElementById('kpiTopProfile').textContent = '—';
+    document.getElementById('kpiTopProfileSub').textContent = 'Aucune donnée';
+  }
+
+  // Top mission
+  const missionCounts = {};
+  data.forEach(p => { const k = p.missionType||'null'; missionCounts[k] = (missionCounts[k]||0)+1; });
+  const topMission = Object.entries(missionCounts).sort((a,b)=>b[1]-a[1])[0];
+  if (topMission) {
+    document.getElementById('kpiTopMission').textContent = (MISSION_LABELS[topMission[0]] || topMission[0]).split(' · ').pop().slice(0,12);
+    document.getElementById('kpiTopMissionSub').textContent = topMission[1]+' demandes';
+  } else {
+    document.getElementById('kpiTopMission').textContent = '—';
+    document.getElementById('kpiTopMissionSub').textContent = '';
+  }
+}
+
+/* Charts */
+function updateChartProfiles(data) {
+  const counts = {};
+  data.forEach(p => { const k = p.profile||'autre'; counts[k]=(counts[k]||0)+1; });
+  const labels = Object.keys(counts).map(k => PROFILE_LABELS[k]||k);
+  const vals = Object.values(counts);
+  const colors = Object.keys(counts).map(k => COLORS[k]||'rgba(200,200,200,0.5)');
+  makeChart('chartProfiles', 'doughnut', labels, vals, colors, {
+    options:{ ...CHART_DEFAULTS, plugins:{...CHART_DEFAULTS.plugins, legend:{...CHART_DEFAULTS.plugins.legend, position:'right'}} }
+  });
+  makeChart('chartProfiles2', 'doughnut', labels, vals, colors, {
+    options:{ ...CHART_DEFAULTS, plugins:{...CHART_DEFAULTS.plugins, legend:{position:'right'}} }
+  });
+}
+
+function updateChartMissions(data) {
+  const counts = {};
+  data.forEach(p => { const k = p.missionType||'nc'; counts[k]=(counts[k]||0)+1; });
+  const labels = Object.keys(counts).map(k => MISSION_LABELS[k]||k);
+  const vals = Object.values(counts);
+  const gc = ['rgba(200,169,110,0.8)','rgba(200,169,110,0.6)','rgba(200,169,110,0.45)','rgba(200,169,110,0.30)','rgba(200,169,110,0.18)','rgba(200,169,110,0.10)'];
+  makeChart('chartMissions','bar',labels,vals,gc.slice(0,vals.length),{
+    dataset:{ borderRadius:1 },
+    options:{ ...CHART_DEFAULTS, scales:{ x:{ticks:{color:'rgba(250,250,247,0.30)',font:{size:9}},grid:{color:'rgba(250,250,247,0.04)'}}, y:{ticks:{color:'rgba(250,250,247,0.30)',font:{size:9}},grid:{color:'rgba(250,250,247,0.06)'},beginAtZero:true} }, plugins:{...CHART_DEFAULTS.plugins,legend:{display:false}} }
+  });
+}
+
+function updateChartTimeline(data) {
+  if (!data.length) { destroyChart('chartTimeline'); return; }
+  const weeks = {};
+  data.forEach(p => {
+    const d = new Date(p.timestamp);
+    const week = d.toISOString().slice(0,10).slice(0,7); // YYYY-MM
+    weeks[week] = (weeks[week]||0)+1;
+  });
+  const sorted = Object.keys(weeks).sort();
+  const vals = sorted.map(k => weeks[k]);
+  makeChart('chartTimeline','line',sorted,vals,['rgba(200,169,110,0.8)'],{
+    dataset:{ borderColor:'rgba(200,169,110,0.8)', backgroundColor:'rgba(200,169,110,0.08)', fill:true, tension:0.35, borderWidth:2, pointBackgroundColor:'rgba(200,169,110,1)', pointRadius:4 },
+    options:{ ...CHART_DEFAULTS, scales:{ x:{ticks:{color:'rgba(250,250,247,0.30)',font:{size:9}},grid:{color:'rgba(250,250,247,0.04)'}}, y:{ticks:{color:'rgba(250,250,247,0.30)',font:{size:9}},grid:{color:'rgba(250,250,247,0.06)'},beginAtZero:true} }, plugins:{...CHART_DEFAULTS.plugins,legend:{display:false}} }
+  });
+}
+
+function updatePriorityHeatmap(data) {
+  const dims = ['qualite','technique','conceptuelle','formation','managerial','commercial'];
+  const labels_fr = { qualite:'Qualité',technique:'Technique',conceptuelle:'Conceptuelle',formation:'Formation',managerial:'Managérial',commercial:'Commercial' };
+  const sums = {};
+  let count = 0;
+  dims.forEach(d => sums[d]=0);
+  data.forEach(p => { if(p.priorities) { count++; dims.forEach(d => sums[d]+=(p.priorities[d]||0)); } });
+  const avgs = {};
+  dims.forEach(d => avgs[d] = count > 0 ? (sums[d]/count) : 0);
+
+  const hm = document.getElementById('priorityHeatmap');
+  if (!hm) return;
+  hm.innerHTML = dims.map(d => {
+    const avg = avgs[d];
+    const pct = avg/5*100;
+    const opacity = 0.2 + avg/5*0.6;
+    return `<div class="priority-cell">
+      <div class="priority-name">${labels_fr[d]}</div>
+      <div class="priority-avg" style="color:rgba(200,169,110,${opacity})">${avg.toFixed(1)}</div>
+      <div class="priority-bar"><div class="priority-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+/* Prospects table */
+function updateProspectsTable(data) {
+  const wrap = document.getElementById('prospectsTableWrap');
+  if (!wrap) return;
+  document.getElementById('prospectsCount').textContent = data.length+' entrée'+(data.length>1?'s':'');
+
+  if (!data.length) {
+    wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">◈</div>Aucun prospect dans cette période.<br>Les données arrivent automatiquement via le questionnaire et le formulaire de contact.</div>';
+    return;
+  }
+
+  const rows = [...data].reverse().map((p,i) => {
+    const d = new Date(p.timestamp);
+    const dateStr = d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const profileKey = p.profile || null;
+    const profileLabel = p.profileName || PROFILE_LABELS[profileKey] || '—';
+    const missionLabel = MISSION_LABELS[p.missionType] || p.missionType || '—';
+    const convertedBadge = p.converted
+      ? '<span class="badge badge-converted">Converti</span>'
+      : '<span class="badge badge-pending">En attente</span>';
+    const convertBtn = p.converted ? '' : `<button class="convert-btn" onclick="markConverted('${p.id}')">Marquer converti</button>`;
+    return `<tr>
+      <td style="color:rgba(250,250,247,0.40);font-size:10px">${dateStr}</td>
+      <td style="color:rgba(250,250,247,0.75)">${p.name||'—'}</td>
+      <td>${p.email||'—'}</td>
+      <td>${p.struct||'—'}</td>
+      <td><span class="badge badge-${profileKey||'null'}">${profileLabel}</span></td>
+      <td style="font-size:10px">${missionLabel}</td>
+      <td>${convertedBadge}</td>
+      <td>${convertBtn}</td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `<table><thead><tr>
+    <th>Date</th><th>Nom</th><th>Email</th><th>Structure</th>
+    <th>Profil</th><th>Formule</th><th>Statut</th><th>Action</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function markConverted(id) {
+  try {
+    const stored = JSON.parse(localStorage.getItem('cb_prospects') || '[]');
+    const idx = stored.findIndex(p => p.id === id);
+    if (idx > -1) { stored[idx].converted = true; localStorage.setItem('cb_prospects', JSON.stringify(stored)); refreshAll(); }
+  } catch(e) {}
+}
+
+function filterTable(q) {
+  const rows = document.querySelectorAll('#prospectsTableWrap tbody tr');
+  rows.forEach(r => {
+    r.style.display = q === '' || r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+/* Profiles page */
+function updateProfilesPage(data) {
+  const detail = document.getElementById('profilesDetail');
+  if (!detail) return;
+  const profileCounts = {};
+  const profileConverted = {};
+  data.forEach(p => {
+    const k = p.profile||'autre';
+    profileCounts[k]=(profileCounts[k]||0)+1;
+    if(p.converted) profileConverted[k]=(profileConverted[k]||0)+1;
+  });
+
+  detail.innerHTML = Object.entries(profileCounts).sort((a,b)=>b[1]-a[1]).map(([k,count]) => {
+    const conv = profileConverted[k]||0;
+    const rate = Math.round(conv/count*100);
+    const pct = count / data.length * 100;
+    return `<div style="display:grid;grid-template-columns:180px 1fr auto;gap:20px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(200,169,110,0.08)">
+      <span class="badge badge-${k}" style="font-size:9px;padding:5px 10px">${PROFILE_LABELS[k]||k}</span>
+      <div>
+        <div style="height:4px;background:rgba(200,169,110,0.10);border-radius:2px">
+          <div style="height:100%;background:${COLORS[k]||'rgba(200,169,110,0.5)'};border-radius:2px;width:${pct}%;transition:width .5s"></div>
+        </div>
+      </div>
+      <div style="text-align:right;white-space:nowrap">
+        <span style="color:rgba(250,250,247,0.6);font-size:11px">${count} prospect${count>1?'s':''}</span>
+        <span style="color:rgba(106,158,114,0.8);font-size:10px;margin-left:10px">${rate}% conv.</span>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-state"><div class="empty-icon">▲</div>Aucune donnée de profil disponible.</div>';
+
+  updateChartConversion(data, profileCounts, profileConverted);
+}
+
+function updateChartConversion(data, counts, converted) {
+  const keys = Object.keys(counts);
+  const labels = keys.map(k => PROFILE_LABELS[k]||k);
+  const vals = keys.map(k => counts[k] > 0 ? Math.round((converted[k]||0)/counts[k]*100) : 0);
+  const colors = keys.map(k => COLORS[k]||'rgba(200,200,200,0.5)');
+  makeChart('chartConversion','bar',labels,vals,colors,{
+    dataset:{ borderRadius:1 },
+    options:{ ...CHART_DEFAULTS, scales:{ x:{ticks:{color:'rgba(250,250,247,0.30)',font:{size:9}},grid:{color:'rgba(250,250,247,0.04)'}}, y:{ticks:{color:'rgba(250,250,247,0.30)',font:{size:9},callback:v=>v+'%'},grid:{color:'rgba(250,250,247,0.06)'},beginAtZero:true,max:100} }, plugins:{...CHART_DEFAULTS.plugins,legend:{display:false}} }
+  });
+}
+
+/* Priorities page */
+function updatePrioritiesPage(data) {
+  const dims = ['qualite','technique','conceptuelle','formation','managerial','commercial'];
+  const labels_fr = ['Qualité','Technique','Conceptuelle','Formation','Managérial','Commercial'];
+  const sums = {};
+  let count = 0;
+  dims.forEach(d => sums[d]=0);
+  data.forEach(p => { if(p.priorities) { count++; dims.forEach(d => sums[d]+=(p.priorities[d]||0)); } });
+  const avgs = dims.map(d => count > 0 ? parseFloat((sums[d]/count).toFixed(2)) : 0);
+
+  destroyChart('chartPrioritiesRadar');
+  const ctx = document.getElementById('chartPrioritiesRadar');
+  if(ctx) {
+    charts['chartPrioritiesRadar'] = new Chart(ctx, {
+      type: 'radar',
+      data: { labels: labels_fr, datasets:[{ data:avgs, backgroundColor:'rgba(200,169,110,0.12)', borderColor:'rgba(200,169,110,0.8)', borderWidth:2, pointBackgroundColor:'rgba(200,169,110,1)', pointRadius:4, fill:true }] },
+      options: { responsive:true, maintainAspectRatio:false, scales:{ r:{ min:0, max:5, ticks:{ stepSize:1, color:'rgba(250,250,247,0.25)', backdropColor:'transparent', font:{size:9} }, grid:{ color:'rgba(250,250,247,0.08)' }, pointLabels:{ color:'rgba(250,250,247,0.50)', font:{ family:"'Jost',sans-serif", size:10 } }, angleLines:{ color:'rgba(250,250,247,0.06)' } } }, plugins:{ legend:{ display:false } } }
+    });
+  }
+
+  // Detail heatmap
+  const detail = document.getElementById('priorityDetail');
+  if(detail) {
+    detail.innerHTML = dims.map((d,i) => {
+      const avg = avgs[i];
+      const pct = avg/5*100;
+      const opacity = 0.2+avg/5*0.7;
+      return `<div class="priority-cell">
+        <div class="priority-name">${labels_fr[i]}</div>
+        <div class="priority-avg" style="color:rgba(200,169,110,${opacity})">${avg.toFixed(1)}</div>
+        <div style="font-size:8px;color:rgba(250,250,247,0.20);margin-top:2px">${count} réponses</div>
+        <div class="priority-bar"><div class="priority-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('');
+  }
+}
+
+/* Export CSV */
+function exportCSV() {
+  const data = getData();
+  if (!data.length) { alert('Aucune donnée à exporter.'); return; }
+  const headers = ['Date','Nom','Email','Structure','Profil','Type client','Formule','Qualité','Technique','Conceptuelle','Formation','Managérial','Commercial','Converti','Source'];
+  const rows = data.map(p => [
+    new Date(p.timestamp).toLocaleDateString('fr-FR'),
+    p.name||'', p.email||'', p.struct||'',
+    p.profileName||p.profile||'',
+    p.clientType||'',
+    MISSION_LABELS[p.missionType]||p.missionType||'',
+    p.priorities?.qualite||0, p.priorities?.technique||0,
+    p.priorities?.conceptuelle||0, p.priorities?.formation||0,
+    p.priorities?.managerial||0, p.priorities?.commercial||0,
+    p.converted?'Oui':'Non', p.source||''
+  ].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(','));
+
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['\ufeff'+csv], { type:'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'cb_prospects_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+/* Clear data */
+function clearData() {
+  if (confirm('Supprimer toutes les données de prospects ? Cette action est irréversible.')) {
+    localStorage.removeItem('cb_prospects');
+    refreshAll();
+  }
+}
+
+// Fix missing closing quote in template literal
+document.addEventListener('DOMContentLoaded', refreshAll);
+</script>
+</body>
+</html>
